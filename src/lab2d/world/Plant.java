@@ -10,6 +10,6 @@ public interface Plant extends WorldThing
 	 * This will normally be constant throughout a game.*/
 	public void plantUpdate(DWorld world, float timeChange);
 	
-	/**Make the Plant magically die.*/
+	/**Make a living thing wither and die in place.*/
 	public void kill(DWorld world);
 }

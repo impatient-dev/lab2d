@@ -1,7 +1,5 @@
 package lab2d.world;
 
-import java.awt.Color;
-
 import lab2d.world.drawers.RectangularAppearance;
 
 import org.jbox2d.collision.shapes.PolygonShape;
@@ -11,6 +9,7 @@ import org.jbox2d.dynamics.*;
 /**A static, unchanging, invincible wall.*/
 public class PermanentWall implements WorldThing
 {
+	private WorldThingBasicBehavior basicBehavior = new WorldThingBasicBehavior(this);
 	private RectangularAppearance drawer;
 	private final Body body;
 	
@@ -40,7 +39,9 @@ public class PermanentWall implements WorldThing
 	}
 	
 	@Override public Drawer getDrawer(){return drawer;}
-
 	@Override public Body getBody(){return body;}
+	@Override public boolean exists(){return basicBehavior.exists();}
+	@Override public void delete(DWorld world){basicBehavior.delete(world);}
+	@Override public void destroy(DWorld world){basicBehavior.destroy(world);}
 
 }

@@ -11,7 +11,7 @@ import lab2d.world.drawers.RectangularAppearance;
 /**A rectangular box that spins and moves.*/
 public class Box implements WorldThing
 {
-//	private float extentW, extentH, density;
+	private final WorldThingBasicBehavior basicBehavior = new WorldThingBasicBehavior(this);
 	private RectangularAppearance drawer;
 	private Body body;
 	
@@ -43,7 +43,8 @@ public class Box implements WorldThing
 	
 	
 	@Override public Drawer getDrawer(){return drawer;}
-
-
 	@Override public Body getBody(){return body;}
+	@Override public boolean exists(){return basicBehavior.exists();}
+	@Override public void delete(DWorld world){basicBehavior.delete(world);}
+	@Override public void destroy(DWorld world){delete(world);}
 }

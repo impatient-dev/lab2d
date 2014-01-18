@@ -13,7 +13,7 @@ public class WorldGeneration
 	/**Generates a world with some random boxes.*/
 	public static DWorld generateBasic(Random rand, Vec2 extents)
 	{
-		DWorld world = new DWorld(rand, extents, new WorldSettings());
+		DWorld world = new DWorld(rand, extents);
 		
 		generateWorldBoundary(world);
 		

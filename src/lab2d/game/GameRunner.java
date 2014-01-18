@@ -18,8 +18,8 @@ public class GameRunner
 	private Thread workerThread = null;
 	
 	private volatile long gameTime = 0;
-	private volatile long nextRenderTime = 0, nextPhysicalTime = 0;
-	private final float renderPeriod, physicsPeriod;
+	private volatile long nextRenderTime = 0, nextPhysicsTime = 0, nextPlantTime = 0;
+	private final float renderPeriod, physicsPeriod, plantsPeriod;
 	
 	
 	/**Runs a game for the provided world with the provided settings.*/
@@ -29,9 +29,11 @@ public class GameRunner
 		this.settings = settings;
 		renderPeriod = settings.getRenderPeriodMS() / 1000.0f;
 		physicsPeriod = settings.getPhysicsPeriodMS() / 1000.0f;
+		this.plantsPeriod = settings.getPlantPeriodMS() / 1000.0f;
 	}
 	
 	
+	/**Start doing updates, renders, etc.*/
 	public void launch()
 	{
 		if(workerThread != null)
@@ -76,15 +78,21 @@ public class GameRunner
 					nextRenderTime += settings.getRenderPeriodMS();
 				}
 				
-				if(nextPhysicalTime <= gameTime)
+				if(nextPhysicsTime <= gameTime)
 				{
 					world.updatePhysics(physicsPeriod);
-					nextPhysicalTime += settings.getPhysicsPeriodMS();
+					nextPhysicsTime += settings.getPhysicsPeriodMS();
+				}
+				
+				if(nextPlantTime <= gameTime)
+				{
+					world.updatePlants(plantsPeriod);
+					nextPlantTime += settings.getPlantPeriodMS();
 				}
 				
 				
 				lastTickStart = tickStart;
-				long toSleep = min(nextRenderTime, nextPhysicalTime) - gameTime;
+				long toSleep = min(nextRenderTime, nextPhysicsTime) - gameTime;
 				
 				if(toSleep > 0)
 					try{Thread.sleep(toSleep);}catch(InterruptedException ex){}

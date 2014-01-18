@@ -18,11 +18,14 @@ public interface WorldThing
 	 * than to directly modify its Body.*/
 	public abstract Body getBody();
 	
+	/**Whether or not the thing still exists. False after a thing is deleted/destroyed/etc.*/
+	public boolean exists();
+	
 	/**Completely remove and deregister the thing from the DWorld,
 	 * without any frills like spawning debris or a corpse.*/
-//	public abstract void delete(DWorld world);
+	public abstract void delete(DWorld world);
 	
 	/**Like delete(), but can spawn debris/a corpse/an explosion/etc. and do other logical things
 	 * that should happen when this type of object is destroyed.*/
-//	public abstract void destroy(DWorld world);
+	public abstract void destroy(DWorld world);
 }

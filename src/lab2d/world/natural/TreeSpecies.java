@@ -48,6 +48,6 @@ public class TreeSpecies
 	/**A tree's health change during each plantUpdate is its nutrition times the period of the update times this.
 	 * Larger values speed up growth.*/
 	public final float nutritionToHealthMultiplier = 1f;
-	/**How much health it costs to spawn a new leaf.*/
+	/**How much health it costs to spawn a new leaf (a positive amount).*/
 	public final float spawnLeafHealthCost = 5f;
 }

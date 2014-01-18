@@ -3,6 +3,7 @@ package lab2d.world.natural;
 import java.util.*;
 
 import org.jbox2d.callbacks.QueryCallback;
+import org.jbox2d.collision.AABB;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
@@ -13,6 +14,7 @@ import lab2d.world.drawers.RectangularAppearance;
 /**A central wooden trunk that spawns leaves and TODO fruit around it.*/
 public class Tree implements Plant
 {
+	private final WorldThingBasicBehavior basicBehavior = new WorldThingBasicBehavior(this);
 	private TreeSpecies species = TreeSpecies.INSTANCE;
 	private RectangularAppearance drawer;
 	private Body body;
@@ -29,7 +31,7 @@ public class Tree implements Plant
 	/**Lists nearby Plants and their nutrition effects.*/
 	private Map<Plant,Float> nearbyPlantNutritionEffects = new HashMap<>();
 	
-	/**Maximal constructor*/
+	
 	public Tree(DWorld world, Vec2 pos, float angle)
 	{
 		//initialize nutrition info
@@ -53,32 +55,65 @@ public class Tree implements Plant
 			spawnNewLeaf(world);
 		health = species.healthInitial;
 		
+		AABB aabb = new AABB(new Vec2(pos.x - species.nutritionRadius, pos.y - species.nutritionRadius),
+				new Vec2(pos.x + species.nutritionRadius, pos.y + species.nutritionRadius));
+		world.getPhysicsWorld().queryAABB(new MyQueryHandler(this, pos), aabb);
+		
 		world.addThing(this);
 		world.addPlant(this);
 	}
+	
 	
 	@Override public Drawer getDrawer(){return drawer;}
 	@Override public Body getBody(){return body;}
 	public TreeSpecies getSpecies(){return species;}
 	
+	@Override public boolean exists(){return basicBehavior.exists();}
+	@Override public void delete(DWorld world){basicBehavior.delete(world);}
+	@Override public void destroy(DWorld world){delete(world);}
+	@Override public void kill(DWorld world){destroy(world);}
+	
+	/**Let this Tree know that one of its leaves has died.
+	 * Called by leaves only.*/
+	public void notifyLeafDead(TreeLeaf leaf)
+	{
+		nutritionValid = false;
+		leaves.remove(leaf);
+	}
+	
+	
 	@Override public void plantUpdate(DWorld world, float timeChange)
 	{
-		//TODO
+		if(!nutritionValid)
+			calculateNutrition();
+		
+		health += nutrition * timeChange * species.nutritionToHealthMultiplier;
+		
+		if(health <= 0)
+		{
+			if(!leaves.isEmpty())
+			{
+				TreeLeaf leaf = leaves.get(leaves.size() - 1);
+				leaf.destroy(world);
+			}
+			else
+				kill(world);
+		}
+		else if(leaves.size() < species.maxLeaves && health > species.spawnLeafHealthCost)
+		{
+			if(spawnNewLeaf(world))
+				health -= species.spawnLeafHealthCost;
+		}
+		else if(leaves.size() == species.maxLeaves)
+		{
+			//TODO reproduction
+		}
 	}
-	
-	public void delete(DWorld world)
-	{
-		world.removeThing(this);
-		world.removePlant(this);
-	}
-	
-	public void destroy(DWorld world){delete(world);}
-	
-	@Override public void kill(DWorld world){destroy(world);}
 	
 	
 	/**Translate an angle relative to this tree (counterclockwise from east)
 	 * to the angle a leaf at that tree-angle must be rotated to point outward.*/
+	@SuppressWarnings("unused")
 	private float treeToLeafAngle(float angle)
 	{
 		return angle - (float)Math.PI / 2;
@@ -112,6 +147,17 @@ public class Tree implements Plant
 	}
 	
 	
+	/**Process nearbyPlantNutritionEffects to determine this Tree's current nutrition, which is stored in its variable.
+	 * nutritionValid is set to true.*/
+	private void calculateNutrition()
+	{
+		nutrition = species.nutritionPerLeaf * leaves.size();
+		for(float effect : nearbyPlantNutritionEffects.values())
+			nutrition += effect;
+		nutritionValid = true;
+	}
+	
+	
 	/**Determine the nutrition effect of a Plant.
 	 * If the Plant has an effect, that Plant and its effect will be put in nearbyPlantNutritionEffects.
 	 * The caller is responsible for ensuring the argument is a non-null Plant that is not this plant,
@@ -139,19 +185,22 @@ public class Tree implements Plant
 	}
 	
 	
+	
+	
 	/**Class that receives and processes nearby plants from an AABB search,
 	 * populating the lists in this Tree.
 	 * Assumes that this Plant is not in the results (so do the query before adding this plant).*/
 	private class MyQueryHandler implements QueryCallback
 	{
 		private final Vec2 myPos;
-		public MyQueryHandler(Vec2 myPos){this.myPos = myPos;}
+		private final Tree me;
+		public MyQueryHandler(Tree me, Vec2 myPos){this.me = me; this.myPos = myPos;}
 		
 		@Override public boolean reportFixture(Fixture fixture)
 		{
 			Object obj = fixture.getBody().getUserData();
 			
-			if(obj != null && obj instanceof Plant)
+			if(obj != null && obj != me && obj instanceof Plant)
 				logNutritionEffectOfPlant((Plant)obj, myPos);
 			
 			return true;//keep going

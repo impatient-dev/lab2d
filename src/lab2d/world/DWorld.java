@@ -79,9 +79,6 @@ public class DWorld
 	
 	/*SPECIAL WORLD OBJECTS*/
 	
-	private WorldSettings settings;
-	public WorldSettings settings(){return settings;}
-	
 	private Materials materials;
 	public Materials materials(){return materials;}
 	
@@ -90,12 +87,11 @@ public class DWorld
 	/**CONSTRUCTOR*/
 	
 	/**@param extents half the width and half the height of the world. (Like radii.)*/
-	public DWorld(Random randSrc, Vec2 extents, WorldSettings settings)
+	public DWorld(Random randSrc, Vec2 extents)
 	{
 		this.randSrc = randSrc;
 		this.extents = extents.clone();
-		this.settings = settings;
-		this.materials = settings.materials();
+		this.materials = new Materials();
 	}
 	
 	

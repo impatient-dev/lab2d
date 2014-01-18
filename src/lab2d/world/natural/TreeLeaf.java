@@ -12,6 +12,7 @@ public class TreeLeaf implements WorldThing
 	private Tree tree;
 	private TriangularAppearance drawer;
 	private Body body;
+	private final WorldThingBasicBehavior basicBehavior = new WorldThingBasicBehavior(this);
 	
 	
 	/**Creates a leaf at the provided location with the provided angle (rotates the tip counterclockwise from .*/
@@ -42,15 +43,11 @@ public class TreeLeaf implements WorldThing
 	
 	@Override public Body getBody(){return body;}
 	@Override public Drawer getDrawer(){return drawer;}
-	
-	/*@Override*/ public void delete(DWorld world)
+	@Override public boolean exists(){return basicBehavior.exists();}
+	@Override public void delete(DWorld world)
 	{
-		world.removeThing(this);
-		world.getPhysicsWorld().destroyBody(body);
+		basicBehavior.delete(world);
+		tree.notifyLeafDead(this);
 	}
-	
-	/*@Override*/ public void destroy(DWorld world)
-	{
-		delete(world);
-	}
+	@Override public void destroy(DWorld world){delete(world);}
 }
